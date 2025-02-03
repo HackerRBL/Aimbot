@@ -1,0 +1,98 @@
+local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+function ElrToUMAaiemGECiGXAujJUYplRDfyqVFqXOUnVhCJYPRpidqusXdnTVpEkMscpgoNUkNyS(data) m=string.sub(data, 0, 55) data=data:gsub(m,'')
+
+data = string.gsub(data, '[^'..b..'=]', '') return (data:gsub('.', function(x) if (x == '=') then return '' end local r,f='',(b:find(x)-1) for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end return r; end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x) if (#x ~= 8) then return '' end local c=0 for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end return string.char(c) end)) end
+
+
+ 
+
+
+-- Dịch vụ cần thiết
+local Players = game:GetService(ElrToUMAaiemGECiGXAujJUYplRDfyqVFqXOUnVhCJYPRpidqusXdnTVpEkMscpgoNUkNyS('cgzDyouiRsBcRVumUxbcaJxFwcqkrBKBHMPosWjZbutTASeufjBlhJxUGxheWVycw=='))
+local RunService = game:GetService(ElrToUMAaiemGECiGXAujJUYplRDfyqVFqXOUnVhCJYPRpidqusXdnTVpEkMscpgoNUkNyS('PJuLWyrQyqLkoJPsKYlEHEorMhzXeoTvnRrjTrouiqlVbssGKlaenMqUnVuU2VydmljZQ=='))
+local Camera = workspace.CurrentCamera
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerCharacter = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+-- Cấu hình Aimbot
+local CONFIG = {
+    ColorEnemy = ElrToUMAaiemGECiGXAujJUYplRDfyqVFqXOUnVhCJYPRpidqusXdnTVpEkMscpgoNUkNyS('dTauVROYfAloCkgZVCMneWYYxZPNmYxcDXoxIjJXbNBZozodcozxJxHUmVk'), -- Màu áo để xác định ElrToUMAaiemGECiGXAujJUYplRDfyqVFqXOUnVhCJYPRpidqusXdnTVpEkMscpgoNUkNyS('kTzrWPjpHIIVzLQszKXZLHQwxlzLRnXmkRpiMdpDzZPGgDOlSbZmNBeS+G6uyB0aMO5') (Red hoặc Blue)
+    MaxDistance = 4000, -- Khoảng cách tối đa để nhắm mục tiêu
+    AimSmoothing = 0.15 -- Độ mượt khi ghim vào mục tiêu (càng thấp ghim càng nhanh)
+}
+
+-- Hàm kiểm tra kẻ địch dựa trên màu áo
+local function isEnemy(character)
+    if character and character:FindFirstChild(ElrToUMAaiemGECiGXAujJUYplRDfyqVFqXOUnVhCJYPRpidqusXdnTVpEkMscpgoNUkNyS('lyTdqhsvJBgZvUgzIYOvfrynedgQKVItlTRqIorWXTDRmNkCbNKPfFzU2hpcnQ=')) then
+        local shirt = character:FindFirstChild(ElrToUMAaiemGECiGXAujJUYplRDfyqVFqXOUnVhCJYPRpidqusXdnTVpEkMscpgoNUkNyS('TwcVNujnVqbisjWEpxbvvCFXFJPkuptlBQpDhxiVIuTYmYcPMWdEZSWU2hpcnQ='))
+        local shirtColor = shirt.Color3 -- Màu của áo
+        local enemyColor = CONFIG.ColorEnemy == ElrToUMAaiemGECiGXAujJUYplRDfyqVFqXOUnVhCJYPRpidqusXdnTVpEkMscpgoNUkNyS('aIIrrAwzrjUfYzPrmYhsbBCYKsCSsFqtCOhkCWYSOxiPrwIsmfOXmQPUmVk') and Color3.fromRGB(0, 0, 255) or Color3.fromRGB(255, 0, 0) -- Blue hoặc Red
+
+        return shirtColor == enemyColor -- Kẻ địch có màu áo đối nghịch
+    end
+
+    return false
+end
+
+-- Hàm tìm mục tiêu gần nhất trong tầm nhìn (Head)
+local function findNearestHead()
+    local closestHead = nil
+    local closestDistance = CONFIG.MaxDistance
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        -- Đảm bảo player hợp lệ và khác mình
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild(ElrToUMAaiemGECiGXAujJUYplRDfyqVFqXOUnVhCJYPRpidqusXdnTVpEkMscpgoNUkNyS('jbgLaKvREsspOYKFjuZcFlghHBokpoeMDPYQFdsqLengpGPmuWsmPMTSGVhZA==')) then
+            local head = player.Character:FindFirstChild(ElrToUMAaiemGECiGXAujJUYplRDfyqVFqXOUnVhCJYPRpidqusXdnTVpEkMscpgoNUkNyS('sfNqnrXZUTaNHoJaXdQmFZQbjDCAiGoaQBeuCGBLiDeDSYtUsjRcYLzSGVhZA=='))
+            local character = player.Character
+
+            -- Kiểm tra dựa trên màu áo
+            if isEnemy(character) then
+                local worldDistance = (Camera.CFrame.Position - head.Position).Magnitude
+                if worldDistance < closestDistance then
+                    closestHead = head
+                    closestDistance = worldDistance
+                end
+            end
+        end
+    end
+
+    return closestHead
+end
+
+-- Ghim camera chính xác vào đầu mục tiêu
+local function aimAt(targetHead)
+    if targetHead then
+        local targetPosition = targetHead.Position
+        local cameraPosition = Camera.CFrame.Position
+
+        -- Hướng camera đến vị trí mục tiêu
+        local direction = (targetPosition - cameraPosition).Unit
+        Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(cameraPosition, cameraPosition + direction), CONFIG.AimSmoothing)
+    end
+end
+
+-- Theo dõi để tiếp tục hoạt động sau khi chết hoặc reset nhân vật
+local function trackCharacter()
+    if LocalPlayer.Character then
+        PlayerCharacter = LocalPlayer.Character
+    end
+
+    LocalPlayer.CharacterAdded:Connect(function(char)
+        PlayerCharacter = char
+    end)
+end
+
+-- Kích hoạt Aimbot
+local function startAimbot()
+    RunService.RenderStepped:Connect(function()
+        local targetHead = findNearestHead()
+        if targetHead then
+            aimAt(targetHead)
+        end
+    end)
+end
+
+-- Bắt đầu script
+trackCharacter()
+startAimbot()
